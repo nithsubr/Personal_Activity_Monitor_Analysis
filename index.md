@@ -26,9 +26,9 @@ Once we have concluded on the predictive model using the above steps, we would a
 
 #Type of Model 
 
-This is essentially a classification requirement. We need to classify or rank an activity-instance/-attempt on a scale of A to E via a concise and accurate model. We would essentially make use of descision trees which would take all the inputs and predict the results. 
+This is essentially a classification requirement. We need to classify or rank an activity-instance/-attempt on a scale of A to E via a concise and accurate model. We would make use of descision trees which would take the designated inputs and predict the results. 
 
-**To benefit from the strength of bootstrapping to select a model for this classification requirement, we would use the Random Forest method.**
+**To benefit from the strength of bootstrapping for selecting a model for this classification requirement, we would use the Random Forest method.**
 
 &nbsp;
 
@@ -60,13 +60,13 @@ download.file(url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-tes
 testing <- read.csv("pml-testing.csv")
 ```
 
-*Data Collection*: The abstract provided at the link - [Abstract][3] describes the data collection and classification Process (process of classifying the sensor readings of each record on a quality scale of A to E) in detail.
+*Data Collection*: The abstract provided at the link - [Abstract][3], describes the data collection and classification Process (process of classifying the sensor readings of each record on a quality scale of A to E) in detail.
 
 **About the Data**
 
 1. Each row contains a distinct set of sensor readings taken at a given time instance.
 
-2. We would be predciting the outcome stored in the variable named "classe"
+2. We would be prediciting the outcome stored in the variable named "classe"
 
 3. There are variables for calculated features on the "Euler angles (roll, pitch and yaw)", "total acceleration", "gyros x/y/z", "acceleration x/y/z" and "magnet x/y/z" for each of the 4 sensors - "Belt", "Arm", "Forearm" and "Dumbell".
 
@@ -130,7 +130,7 @@ testing_final <- testing[,c(-1,-2,-3,-4,-5,-6,-7)]
 
 **3. NA and Blank Columns:**
 
-As we can see, there are several rows with most/all of the values as NAs or Blanks. This could be due to various reasons investigating which is out of scope of our analysis now. These variables can not be considered for model selection. We would now filter out the variable which are NAs / Blanks for more than 75% of the rows.
+As we can see, there are several rows with most/all of the values as NAs or Blanks. This could be due to various reasons, investigating which is out of scope of our analysis now. These variables can not be considered for model selection. We would now filter out the variable which are NAs / Blanks for more than 75% of the rows.
 
 
 ```r
@@ -186,11 +186,8 @@ validation <- final_data[-inTrain, ]
 &nbsp;
 
 ##Pre-Processing: Principal Component Analysis (PCA)
-We would like to use Principal Component Analysis to find the components that capture majority of the variances in Training dataset. The below graph shows the outcome of PCA - 
 
-1. Line: Cumulative percentages of variance (line) explained by the components
-
-2. Bars: Variances explained by individual components. 
+We would like to use Principal Component Analysis to find the components that capture majority of the variances in Training dataset. 
 
 
 ```r
@@ -201,12 +198,21 @@ pc$perc <- pc$Var * 100 / sum(pc$Var)
 pc$cum <- cumsum(pc$Var)
 pc$cum_perc <- cumsum(pc$perc)
 pc$pc <- 1:nrow(pc)
+```
 
+The below graph shows the outcome of PCA - 
+
+1. Line Graph: Cumulative percentages of variance explained by the components
+
+2. Bars: Variances explained by individual components. 
+
+
+```r
 g2 <- ggplot(data = pc) + geom_bar(aes(x = pc, y = perc, group = 1), stat = "identity", fill = "steelblue") + geom_point(aes(x = pc, y = cum_perc, group = 2), col = "red", size = 2) + geom_line(aes(x = pc, y = cum_perc, group = 2), col = "red") + xlab("Principal Components") + ylab("Variance Percentage")
 print(g2)
 ```
 
-![](index_files/figure-html/unnamed-chunk-9-1.png)\
+![](index_files/figure-html/unnamed-chunk-10-1.png)\
 
 As we can see, 90% of the variance can be explained by 20 components. While 95% of the variance can be explained by 25 components.
 
@@ -214,9 +220,9 @@ As we can see, 90% of the variance can be explained by 20 components. While 95% 
 
 #Model Selection
 
-We would now fit a Random Forest Model on the training data set. The "train" function in R when called with "pca" as the method, would create random samples of the training dataset using bootstrapping. Again using bootstrapping, It would create random sets of variables to create a descision tree for each sample. At the end, all the individual trees would be merged / ensembeled and the predictions for each set of inputs would be averaged (majority vote) across the outcomes from these trees. Therefore, inspite of being a bit complicated, this model would give us the best accuracy.
+We would now fit a Random Forest Model on the training data set. Random Forest is an ensembel of several descision trees. It uses Bootstrapping technique to derive random samples of the training dataset do model each tree. Again using Bootstrapping, It would use a random set of variables for creating each model. At the end, all the individual trees would be merged / ensembeled and the predictions for each set of inputs would be averaged (majority vote) across the outcomes from these trees. Therefore, inspite of being a bit complicated, this model would give us the best accuracy.
 
-We would also see if PCA provides any improvement in accuracy. 
+We would also see if the Principal Component Analysis provides any improvement in accuracy. 
 
 This model selection process being very perfomance intensive, we would go for parellel processing
 
@@ -283,7 +289,7 @@ E     0.00     0.00     0.00     0.02     18.27
 
 #Cross Validation
 
-The R function "train" also perfoms a cross-validation of the prediction results using training dataset. Below are the results of the same without PCA. The Log of sample error has been plotted against the number of trees - 
+We would now analyze the results of cross-validation of the prediction results using training dataset which R has performed for us automatically. Below are the results of the same without PCA. The Log of sample error has been plotted against the number of trees - 
 
 
 ```r
@@ -291,7 +297,7 @@ plot(Model_Fit$finalModel, log = "y", main = "Automatic Cross-Validation Results
 legend("topright", legend=unique(training$classe), col=unique(as.numeric(training$classe)), pch=19)
 ```
 
-![](index_files/figure-html/unnamed-chunk-15-1.png)\
+![](index_files/figure-html/unnamed-chunk-16-1.png)\
 
 As we can see - 
 
@@ -308,7 +314,7 @@ Below we have plotted the overall Accuracy against the total count of randomly s
 plot(Model_Fit)
 ```
 
-![](index_files/figure-html/unnamed-chunk-16-1.png)\
+![](index_files/figure-html/unnamed-chunk-17-1.png)\
 
 As we can see -
 
@@ -363,14 +369,16 @@ E      0       1       2       4     1075
 
 **As evident from above results, the PCA model provides 97.89% accuracy whereas the model that uses data without PCA, provides a better accuracy of 99.25%.**
 
-**Looking at the above results, the Final Model selected would be the one without PCA.** Below are the 20 most important variables in the order of their influence with respect to the final model.
+**Looking at the above results, the Final Model selected would be the one without PCA.** 
+
+Below are the 20 most important variables in the order of their influence with respect to the final model.
 
 
 ```r
 plot(varImp(Model_Fit))
 ```
 
-![](index_files/figure-html/unnamed-chunk-19-1.png)\
+![](index_files/figure-html/unnamed-chunk-20-1.png)\
 
 &nbsp;
 
