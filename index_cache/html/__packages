@@ -1,0 +1,11 @@
+base
+knitr
+lubridate
+ggplot2
+gridExtra
+lattice
+caret
+foreach
+iterators
+doParallel
+randomForest
